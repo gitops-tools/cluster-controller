@@ -22,15 +22,15 @@ import (
 	"github.com/fluxcd/pkg/apis/meta"
 )
 
-// GitOpsClusterNoSecretFinalizerAnnotation if applied to a GitopsCluster
+// GitOpsClusterNoSecretFinalizerAnnotation if applied to a GitOpsCluster
 // indicates that we should not wait for the secret to be removed before
 // allowing the cluster to be removed.
 const GitOpsClusterNoSecretFinalizerAnnotation = "clusters.gitops.weave.works/no-secret-finalizer"
 
-// GitopsClusterSpec defines the desired state of GitopsCluster
+// GitOpsClusterSpec defines the desired state of GitOpsCluster
 // +kubebuilder:validation:XValidation:rule="(has(self.secretRef) || has(self.capiClusterRef))",message="must provide a secretRef or capiClusterRef"
 // +kubebuilder:validation:XValidation:rule="!(has(self.secretRef) && has(self.capiClusterRef))",message="cannot provide both capiClusterRef and secretRef"
-type GitopsClusterSpec struct {
+type GitOpsClusterSpec struct {
 	// SecretRef specifies the Secret containing the kubeconfig for a cluster.
 	// +optional
 	SecretRef *meta.LocalObjectReference `json:"secretRef,omitempty"`
@@ -39,20 +39,20 @@ type GitopsClusterSpec struct {
 	CAPIClusterRef *meta.LocalObjectReference `json:"capiClusterRef,omitempty"`
 }
 
-// GitopsClusterStatus defines the observed state of GitopsCluster
-type GitopsClusterStatus struct {
+// GitOpsClusterStatus defines the observed state of GitOpsCluster
+type GitOpsClusterStatus struct {
 	// Conditions holds the conditions for the Cluster.
 	// +optional
 	Conditions []metav1.Condition `json:"conditions,omitempty"`
 }
 
 // GetConditions returns the status conditions of the object.
-func (in GitopsCluster) GetConditions() []metav1.Condition {
+func (in GitOpsCluster) GetConditions() []metav1.Condition {
 	return in.Status.Conditions
 }
 
 // SetConditions sets the status conditions on the object.
-func (in *GitopsCluster) SetConditions(conditions []metav1.Condition) {
+func (in *GitOpsCluster) SetConditions(conditions []metav1.Condition) {
 	in.Status.Conditions = conditions
 }
 
@@ -63,25 +63,25 @@ func (in *GitopsCluster) SetConditions(conditions []metav1.Condition) {
 // +kubebuilder:printcolumn:name="Status",type="string",JSONPath=".status.conditions[?(@.type==\"Ready\")].message",description=""
 // +kubebuilder:printcolumn:name="ClusterConnectivity",type="string",JSONPath=".status.conditions[?(@.type==\"ClusterConnectivity\")].status",description=""
 
-// GitopsCluster is the Schema for the gitopsclusters API
+// GitOpsCluster is the Schema for the gitopsclusters API
 // +kubebuilder:validation:XValidation:rule="has(self.spec)",message="must confgure spec"
-type GitopsCluster struct {
+type GitOpsCluster struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   GitopsClusterSpec   `json:"spec,omitempty"`
-	Status GitopsClusterStatus `json:"status,omitempty"`
+	Spec   GitOpsClusterSpec   `json:"spec,omitempty"`
+	Status GitOpsClusterStatus `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
-// GitopsClusterList contains a list of GitopsCluster
-type GitopsClusterList struct {
+// GitOpsClusterList contains a list of GitOpsCluster
+type GitOpsClusterList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []GitopsCluster `json:"items"`
+	Items           []GitOpsCluster `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&GitopsCluster{}, &GitopsClusterList{})
+	SchemeBuilder.Register(&GitOpsCluster{}, &GitOpsClusterList{})
 }

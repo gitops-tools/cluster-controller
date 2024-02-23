@@ -39,14 +39,14 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
+	gitopsv1alpha1 "github.com/gitops-tools/cluster-controller/api/v1alpha1"
 )
 
 // GitOpsClusterFinalizer is the finalizer key used to detect when we need to
-// finalize a Gitops cluster.
+// finalize a GitOps cluster.
 const GitOpsClusterFinalizer = "clusters.gitops.weave.works"
 
-// GitOpsClusterProvisionedAnnotation if applied to a GitopsCluster indicates
+// GitOpsClusterProvisionedAnnotation if applied to a GitOpsCluster indicates
 // that it should have a ready Provisioned condition.
 const GitOpsClusterProvisionedAnnotation = "clusters.gitops.weave.works/provisioned"
 
@@ -63,8 +63,8 @@ const (
 	MissingSecretRequeueTime = time.Second * 30
 )
 
-// GitopsClusterReconciler reconciles a GitopsCluster object
-type GitopsClusterReconciler struct {
+// GitOpsClusterReconciler reconciles a GitOpsCluster object
+type GitOpsClusterReconciler struct {
 	client.Client
 	Scheme       *runtime.Scheme
 	Options      Options
@@ -78,10 +78,10 @@ type Options struct {
 	DefaultRequeueTime time.Duration
 }
 
-// NewGitopsClusterReconciler creates and returns a configured
+// NewGitOpsClusterReconciler creates and returns a configured
 // reconciler ready for use.
-func NewGitopsClusterReconciler(c client.Client, s *runtime.Scheme, opts Options) *GitopsClusterReconciler {
-	return &GitopsClusterReconciler{
+func NewGitOpsClusterReconciler(c client.Client, s *runtime.Scheme, opts Options) *GitOpsClusterReconciler {
+	return &GitOpsClusterReconciler{
 		Client:                c,
 		Scheme:                s,
 		Options:               opts,
@@ -97,11 +97,11 @@ func NewGitopsClusterReconciler(c client.Client, s *runtime.Scheme, opts Options
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
-func (r *GitopsClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *GitOpsClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := log.FromContext(ctx)
 
 	// Fetch the Cluster
-	cluster := &gitopsv1alpha1.GitopsCluster{}
+	cluster := &gitopsv1alpha1.GitOpsCluster{}
 	if err := r.Get(ctx, req.NamespacedName, cluster); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
@@ -167,7 +167,7 @@ func (r *GitopsClusterReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 			e := fmt.Errorf("failed to get secret %q: %w", name, err)
 			if apierrors.IsNotFound(err) {
 				// TODO: this could _possibly_ be controllable by the
-				// `GitopsCluster` itself.
+				// `GitOpsCluster` itself.
 				log.Info("waiting for cluster secret to be available")
 				conditions.MarkFalse(cluster, meta.ReadyCondition, gitopsv1alpha1.WaitingForSecretReason, e.Error())
 				if err := r.Status().Update(ctx, cluster); err != nil {
@@ -234,7 +234,7 @@ func (r *GitopsClusterReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	return ctrl.Result{RequeueAfter: r.Options.DefaultRequeueTime}, nil
 }
 
-func (r *GitopsClusterReconciler) reconcileDeletedReferences(ctx context.Context, gc *gitopsv1alpha1.GitopsCluster) error {
+func (r *GitOpsClusterReconciler) reconcileDeletedReferences(ctx context.Context, gc *gitopsv1alpha1.GitOpsCluster) error {
 	log := log.FromContext(ctx)
 
 	if gc.Spec.CAPIClusterRef != nil {
@@ -281,17 +281,17 @@ func (r *GitopsClusterReconciler) reconcileDeletedReferences(ctx context.Context
 }
 
 // SetupWithManager sets up the controller with the Manager.
-func (r *GitopsClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	if err := mgr.GetCache().IndexField(context.TODO(), &gitopsv1alpha1.GitopsCluster{}, SecretNameIndexKey, r.indexGitopsClusterBySecretName); err != nil {
+func (r *GitOpsClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	if err := mgr.GetCache().IndexField(context.TODO(), &gitopsv1alpha1.GitOpsCluster{}, SecretNameIndexKey, r.indexGitOpsClusterBySecretName); err != nil {
 		return fmt.Errorf("failed setting index fields: %w", err)
 	}
 
-	if err := mgr.GetCache().IndexField(context.TODO(), &gitopsv1alpha1.GitopsCluster{}, CAPIClusterNameIndexKey, r.indexGitopsClusterByCAPIClusterName); err != nil {
+	if err := mgr.GetCache().IndexField(context.TODO(), &gitopsv1alpha1.GitOpsCluster{}, CAPIClusterNameIndexKey, r.indexGitOpsClusterByCAPIClusterName); err != nil {
 		return fmt.Errorf("failed setting index fields: %w", err)
 	}
 
 	builder := ctrl.NewControllerManagedBy(mgr).
-		For(&gitopsv1alpha1.GitopsCluster{}).
+		For(&gitopsv1alpha1.GitOpsCluster{}).
 		Watches(
 			&corev1.Secret{},
 			handler.EnqueueRequestsFromMapFunc(r.requestsForSecretChange),
@@ -308,10 +308,10 @@ func (r *GitopsClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return builder.Complete(r)
 }
 
-func (r *GitopsClusterReconciler) indexGitopsClusterBySecretName(o client.Object) []string {
-	c, ok := o.(*gitopsv1alpha1.GitopsCluster)
+func (r *GitOpsClusterReconciler) indexGitOpsClusterBySecretName(o client.Object) []string {
+	c, ok := o.(*gitopsv1alpha1.GitOpsCluster)
 	if !ok {
-		panic(fmt.Sprintf("Expected a GitopsCluster, got %T", o))
+		panic(fmt.Sprintf("Expected a GitOpsCluster, got %T", o))
 	}
 
 	if c.Spec.SecretRef != nil {
@@ -321,10 +321,10 @@ func (r *GitopsClusterReconciler) indexGitopsClusterBySecretName(o client.Object
 	return nil
 }
 
-func (r *GitopsClusterReconciler) indexGitopsClusterByCAPIClusterName(o client.Object) []string {
-	c, ok := o.(*gitopsv1alpha1.GitopsCluster)
+func (r *GitOpsClusterReconciler) indexGitOpsClusterByCAPIClusterName(o client.Object) []string {
+	c, ok := o.(*gitopsv1alpha1.GitOpsCluster)
 	if !ok {
-		panic(fmt.Sprintf("Expected a GitopsCluster, got %T", o))
+		panic(fmt.Sprintf("Expected a GitOpsCluster, got %T", o))
 	}
 
 	if c.Spec.CAPIClusterRef != nil {
@@ -334,13 +334,13 @@ func (r *GitopsClusterReconciler) indexGitopsClusterByCAPIClusterName(o client.O
 	return nil
 }
 
-func (r *GitopsClusterReconciler) requestsForSecretChange(ctx context.Context, o client.Object) []ctrl.Request {
+func (r *GitOpsClusterReconciler) requestsForSecretChange(ctx context.Context, o client.Object) []ctrl.Request {
 	secret, ok := o.(*corev1.Secret)
 	if !ok {
 		panic(fmt.Sprintf("Expected a Secret but got a %T", o))
 	}
 
-	var list gitopsv1alpha1.GitopsClusterList
+	var list gitopsv1alpha1.GitOpsClusterList
 	if err := r.Client.List(ctx, &list, client.MatchingFields{SecretNameIndexKey: secret.GetName()}); err != nil {
 		return nil
 	}
@@ -353,13 +353,13 @@ func (r *GitopsClusterReconciler) requestsForSecretChange(ctx context.Context, o
 	return reqs
 }
 
-func (r *GitopsClusterReconciler) requestsForCAPIClusterChange(ctx context.Context, o client.Object) []ctrl.Request {
+func (r *GitOpsClusterReconciler) requestsForCAPIClusterChange(ctx context.Context, o client.Object) []ctrl.Request {
 	cluster, ok := o.(*clusterv1.Cluster)
 	if !ok {
 		panic(fmt.Sprintf("Expected a CAPI Cluster but got a %T", o))
 	}
 
-	var list gitopsv1alpha1.GitopsClusterList
+	var list gitopsv1alpha1.GitOpsClusterList
 	if err := r.Client.List(ctx, &list, client.MatchingFields{CAPIClusterNameIndexKey: cluster.GetName()}); err != nil {
 		return nil
 	}
@@ -372,7 +372,7 @@ func (r *GitopsClusterReconciler) requestsForCAPIClusterChange(ctx context.Conte
 	return reqs
 }
 
-func (r *GitopsClusterReconciler) verifyConnectivity(ctx context.Context, cluster *gitopsv1alpha1.GitopsCluster) error {
+func (r *GitOpsClusterReconciler) verifyConnectivity(ctx context.Context, cluster *gitopsv1alpha1.GitOpsCluster) error {
 	log := log.FromContext(ctx)
 
 	// avoid checking the cluster if it's under deletion.
@@ -422,7 +422,7 @@ func (r *GitopsClusterReconciler) verifyConnectivity(ctx context.Context, cluste
 	return nil
 }
 
-func (r *GitopsClusterReconciler) restConfigFromSecret(ctx context.Context, cluster *gitopsv1alpha1.GitopsCluster) (*rest.Config, error) {
+func (r *GitOpsClusterReconciler) restConfigFromSecret(ctx context.Context, cluster *gitopsv1alpha1.GitOpsCluster) (*rest.Config, error) {
 	log := log.FromContext(ctx)
 
 	var secretRef string

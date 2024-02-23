@@ -9,8 +9,8 @@ import (
 
 	"github.com/fluxcd/pkg/apis/meta"
 	"github.com/fluxcd/pkg/runtime/conditions"
-	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
-	"github.com/weaveworks/cluster-controller/controllers"
+	gitopsv1alpha1 "github.com/gitops-tools/cluster-controller/api/v1alpha1"
+	"github.com/gitops-tools/cluster-controller/controllers"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -48,7 +48,7 @@ func TestReconcile(t *testing.T) {
 		{
 			name: "secret does not exist",
 			state: []runtime.Object{
-				makeTestCluster(func(c *gitopsv1alpha1.GitopsCluster) {
+				makeTestCluster(func(c *gitopsv1alpha1.GitOpsCluster) {
 					c.Spec.SecretRef = &meta.LocalObjectReference{
 						Name: "missing",
 					}
@@ -67,7 +67,7 @@ func TestReconcile(t *testing.T) {
 		{
 			name: "secret exists",
 			state: []runtime.Object{
-				makeTestCluster(func(c *gitopsv1alpha1.GitopsCluster) {
+				makeTestCluster(func(c *gitopsv1alpha1.GitOpsCluster) {
 					c.Spec.SecretRef = &meta.LocalObjectReference{
 						Name: "dev",
 					}
@@ -90,7 +90,7 @@ func TestReconcile(t *testing.T) {
 		{
 			name: "non-CAPI cluster has provisioned annotation",
 			state: []runtime.Object{
-				makeTestCluster(func(c *gitopsv1alpha1.GitopsCluster) {
+				makeTestCluster(func(c *gitopsv1alpha1.GitOpsCluster) {
 					c.ObjectMeta.Annotations = map[string]string{
 						controllers.GitOpsClusterProvisionedAnnotation: "true",
 					}
@@ -110,7 +110,7 @@ func TestReconcile(t *testing.T) {
 		{
 			name: "CAPI cluster does not exist",
 			state: []runtime.Object{
-				makeTestCluster(func(c *gitopsv1alpha1.GitopsCluster) {
+				makeTestCluster(func(c *gitopsv1alpha1.GitOpsCluster) {
 					c.Spec.CAPIClusterRef = &meta.LocalObjectReference{
 						Name: "missing",
 					}
@@ -129,7 +129,7 @@ func TestReconcile(t *testing.T) {
 		{
 			name: "CAPI cluster exists but is not ready",
 			state: []runtime.Object{
-				makeTestCluster(func(c *gitopsv1alpha1.GitopsCluster) {
+				makeTestCluster(func(c *gitopsv1alpha1.GitOpsCluster) {
 					c.Spec.CAPIClusterRef = &meta.LocalObjectReference{
 						Name: "dev",
 					}
@@ -152,7 +152,7 @@ func TestReconcile(t *testing.T) {
 		{
 			name: "CAPI cluster exists and is provisioned",
 			state: []runtime.Object{
-				makeTestCluster(func(c *gitopsv1alpha1.GitopsCluster) {
+				makeTestCluster(func(c *gitopsv1alpha1.GitOpsCluster) {
 					c.Spec.CAPIClusterRef = &meta.LocalObjectReference{
 						Name: "dev",
 					}
@@ -177,7 +177,7 @@ func TestReconcile(t *testing.T) {
 		{
 			name: "CAPI cluster exists and is ready",
 			state: []runtime.Object{
-				makeTestCluster(func(c *gitopsv1alpha1.GitopsCluster) {
+				makeTestCluster(func(c *gitopsv1alpha1.GitOpsCluster) {
 					c.Spec.CAPIClusterRef = &meta.LocalObjectReference{
 						Name: "dev",
 					}
@@ -202,7 +202,7 @@ func TestReconcile(t *testing.T) {
 		{
 			name: "CAPI component is not enabled",
 			state: []runtime.Object{
-				makeTestCluster(func(c *gitopsv1alpha1.GitopsCluster) {
+				makeTestCluster(func(c *gitopsv1alpha1.GitOpsCluster) {
 					c.Spec.CAPIClusterRef = &meta.LocalObjectReference{
 						Name: "dev",
 					}
@@ -219,7 +219,7 @@ func TestReconcile(t *testing.T) {
 		{
 			name: "verify connectivity to the cluster",
 			state: []runtime.Object{
-				makeTestCluster(func(c *gitopsv1alpha1.GitopsCluster) {
+				makeTestCluster(func(c *gitopsv1alpha1.GitOpsCluster) {
 					c.Spec.SecretRef = &meta.LocalObjectReference{
 						Name: "dev",
 					}
@@ -242,7 +242,7 @@ func TestReconcile(t *testing.T) {
 		{
 			name: "verify connectivity failed to read secret",
 			state: []runtime.Object{
-				makeTestCluster(func(c *gitopsv1alpha1.GitopsCluster) {
+				makeTestCluster(func(c *gitopsv1alpha1.GitOpsCluster) {
 					c.Spec.SecretRef = &meta.LocalObjectReference{
 						Name: "dev",
 					}
@@ -265,7 +265,7 @@ func TestReconcile(t *testing.T) {
 		{
 			name: "verify connectivity failed to connect",
 			state: []runtime.Object{
-				makeTestCluster(func(c *gitopsv1alpha1.GitopsCluster) {
+				makeTestCluster(func(c *gitopsv1alpha1.GitOpsCluster) {
 					c.Spec.SecretRef = &meta.LocalObjectReference{
 						Name: "dev",
 					}
@@ -302,7 +302,7 @@ func TestReconcile(t *testing.T) {
 			assertErrorMatch(t, tt.errString, err)
 
 			clsObjectKey := types.NamespacedName{Namespace: testNamespace, Name: testName}
-			cls := testGetGitopsCluster(t, r.Client, clsObjectKey)
+			cls := testGetGitOpsCluster(t, r.Client, clsObjectKey)
 			assertClusterStatus(t, cls, tt.wantCondition, tt.wantStatus, tt.wantStatusMessage)
 		})
 	}
@@ -311,7 +311,7 @@ func TestReconcile(t *testing.T) {
 func TestFinalizedDeletion(t *testing.T) {
 	finalizerTests := []struct {
 		name           string
-		gitopsCluster  *gitopsv1alpha1.GitopsCluster
+		gitopsCluster  *gitopsv1alpha1.GitOpsCluster
 		additionalObjs []runtime.Object
 
 		wantStatusReason string
@@ -320,7 +320,7 @@ func TestFinalizedDeletion(t *testing.T) {
 	}{
 		{
 			"when CAPI cluster exists",
-			makeTestCluster(func(c *gitopsv1alpha1.GitopsCluster) {
+			makeTestCluster(func(c *gitopsv1alpha1.GitOpsCluster) {
 				c.ObjectMeta.Namespace = "test-ns"
 				c.Spec.CAPIClusterRef = &meta.LocalObjectReference{
 					Name: "test-cluster",
@@ -333,7 +333,7 @@ func TestFinalizedDeletion(t *testing.T) {
 		},
 		{
 			"when CAPI cluster has been deleted",
-			makeTestCluster(func(c *gitopsv1alpha1.GitopsCluster) {
+			makeTestCluster(func(c *gitopsv1alpha1.GitOpsCluster) {
 				c.ObjectMeta.Namespace = "test-ns"
 				c.Spec.CAPIClusterRef = &meta.LocalObjectReference{
 					Name: "test-cluster",
@@ -346,7 +346,7 @@ func TestFinalizedDeletion(t *testing.T) {
 		},
 		{
 			"when referenced secret exists",
-			makeTestCluster(func(c *gitopsv1alpha1.GitopsCluster) {
+			makeTestCluster(func(c *gitopsv1alpha1.GitOpsCluster) {
 				c.ObjectMeta.Namespace = "test-ns"
 				c.Spec.SecretRef = &meta.LocalObjectReference{
 					Name: "test-cluster",
@@ -360,7 +360,7 @@ func TestFinalizedDeletion(t *testing.T) {
 		},
 		{
 			"when referenced secret has been deleted",
-			makeTestCluster(func(c *gitopsv1alpha1.GitopsCluster) {
+			makeTestCluster(func(c *gitopsv1alpha1.GitOpsCluster) {
 				c.ObjectMeta.Namespace = "test-ns"
 				c.Spec.SecretRef = &meta.LocalObjectReference{
 					Name: "test-cluster",
@@ -391,7 +391,7 @@ func TestFinalizedDeletion(t *testing.T) {
 			assertErrorMatch(t, tt.errString, err)
 
 			if tt.clusterExists {
-				updated := testGetGitopsCluster(t, r.Client, client.ObjectKeyFromObject(tt.gitopsCluster))
+				updated := testGetGitOpsCluster(t, r.Client, client.ObjectKeyFromObject(tt.gitopsCluster))
 				cond := conditions.Get(updated, meta.ReadyCondition)
 
 				if cond != nil {
@@ -400,7 +400,7 @@ func TestFinalizedDeletion(t *testing.T) {
 					}
 				}
 			} else {
-				var cluster gitopsv1alpha1.GitopsCluster
+				var cluster gitopsv1alpha1.GitOpsCluster
 				err := r.Client.Get(context.TODO(), client.ObjectKeyFromObject(tt.gitopsCluster), &cluster)
 				if !apierrors.IsNotFound(err) {
 					t.Fatalf("expected cluster to not exist but got cluster %v", cluster)
@@ -413,14 +413,14 @@ func TestFinalizedDeletion(t *testing.T) {
 func TestFinalizers(t *testing.T) {
 	finalizerTests := []struct {
 		name           string
-		gitopsCluster  *gitopsv1alpha1.GitopsCluster
+		gitopsCluster  *gitopsv1alpha1.GitOpsCluster
 		additionalObjs []runtime.Object
 
 		wantFinalizer bool
 	}{
 		{
 			"when cluster has no other reference",
-			makeTestCluster(func(c *gitopsv1alpha1.GitopsCluster) {
+			makeTestCluster(func(c *gitopsv1alpha1.GitOpsCluster) {
 				c.ObjectMeta.Namespace = "test-ns"
 			}),
 			[]runtime.Object{},
@@ -428,7 +428,7 @@ func TestFinalizers(t *testing.T) {
 		},
 		{
 			"cluster referencing CAPI cluster",
-			makeTestCluster(func(c *gitopsv1alpha1.GitopsCluster) {
+			makeTestCluster(func(c *gitopsv1alpha1.GitOpsCluster) {
 				c.ObjectMeta.Namespace = "test-ns"
 				c.Spec.CAPIClusterRef = &meta.LocalObjectReference{
 					Name: "test-cluster",
@@ -439,7 +439,7 @@ func TestFinalizers(t *testing.T) {
 		},
 		{
 			"cluster referencing CAPI cluster but capi-enabled is false",
-			makeTestCluster(func(c *gitopsv1alpha1.GitopsCluster) {
+			makeTestCluster(func(c *gitopsv1alpha1.GitOpsCluster) {
 				c.ObjectMeta.Namespace = "test-ns"
 				c.Spec.CAPIClusterRef = &meta.LocalObjectReference{
 					Name: "test-cluster",
@@ -450,7 +450,7 @@ func TestFinalizers(t *testing.T) {
 		},
 		{
 			"cluster referencing secret",
-			makeTestCluster(func(c *gitopsv1alpha1.GitopsCluster) {
+			makeTestCluster(func(c *gitopsv1alpha1.GitOpsCluster) {
 				c.ObjectMeta.Namespace = "test-ns"
 				c.Spec.SecretRef = &meta.LocalObjectReference{
 					Name: "test-cluster",
@@ -462,7 +462,7 @@ func TestFinalizers(t *testing.T) {
 		},
 		{
 			"cluster referencing secret - but no-secret-finalization annotation",
-			makeTestCluster(func(c *gitopsv1alpha1.GitopsCluster) {
+			makeTestCluster(func(c *gitopsv1alpha1.GitOpsCluster) {
 				c.ObjectMeta.Namespace = "test-ns"
 				c.ObjectMeta.Annotations = map[string]string{
 					gitopsv1alpha1.GitOpsClusterNoSecretFinalizerAnnotation: "true",
@@ -478,7 +478,7 @@ func TestFinalizers(t *testing.T) {
 
 		{
 			"deleted gitops cluster",
-			makeTestCluster(func(c *gitopsv1alpha1.GitopsCluster) {
+			makeTestCluster(func(c *gitopsv1alpha1.GitOpsCluster) {
 				now := metav1.NewTime(time.Now())
 				c.ObjectMeta.Namespace = "test-ns"
 				c.ObjectMeta.Finalizers = []string{"testing"}
@@ -508,7 +508,7 @@ func TestFinalizers(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			updated := testGetGitopsCluster(t, r.Client, client.ObjectKeyFromObject(tt.gitopsCluster))
+			updated := testGetGitOpsCluster(t, r.Client, client.ObjectKeyFromObject(tt.gitopsCluster))
 			if v := controllerutil.ContainsFinalizer(updated, controllers.GitOpsClusterFinalizer); v != tt.wantFinalizer {
 				t.Fatalf("cluster HasFinalizer got %v, want %v", v, tt.wantFinalizer)
 			}
@@ -516,7 +516,7 @@ func TestFinalizers(t *testing.T) {
 	}
 }
 
-func TestGitopsClusterValidation(t *testing.T) {
+func TestGitOpsClusterValidation(t *testing.T) {
 	testEnv := &envtest.Environment{
 		CRDDirectoryPaths: []string{filepath.Join("..", "config", "crd", "bases")},
 	}
@@ -541,7 +541,7 @@ func TestGitopsClusterValidation(t *testing.T) {
 	}
 
 	t.Run("when neither the secret nor capi cluster are configured", func(t *testing.T) {
-		testCluster := makeTestCluster(func(c *gitopsv1alpha1.GitopsCluster) {
+		testCluster := makeTestCluster(func(c *gitopsv1alpha1.GitOpsCluster) {
 			c.ObjectMeta.Name = "no-config"
 			c.ObjectMeta.Namespace = "default"
 			c.Spec.SecretRef = nil
@@ -554,7 +554,7 @@ func TestGitopsClusterValidation(t *testing.T) {
 	})
 
 	t.Run("when both the secret and capi cluster are configured", func(t *testing.T) {
-		testCluster := makeTestCluster(func(c *gitopsv1alpha1.GitopsCluster) {
+		testCluster := makeTestCluster(func(c *gitopsv1alpha1.GitOpsCluster) {
 			c.ObjectMeta.Name = "both-configs"
 			c.ObjectMeta.Namespace = "default"
 			c.Spec.SecretRef = &meta.LocalObjectReference{
@@ -571,7 +571,7 @@ func TestGitopsClusterValidation(t *testing.T) {
 	})
 
 	t.Run("when the secret is configured", func(t *testing.T) {
-		testCluster := makeTestCluster(func(c *gitopsv1alpha1.GitopsCluster) {
+		testCluster := makeTestCluster(func(c *gitopsv1alpha1.GitOpsCluster) {
 			c.ObjectMeta.Name = "only-secret-configured"
 			c.ObjectMeta.Namespace = "default"
 			c.Spec.SecretRef = &meta.LocalObjectReference{
@@ -583,7 +583,7 @@ func TestGitopsClusterValidation(t *testing.T) {
 	})
 
 	t.Run("when the capiClusterRef is configured", func(t *testing.T) {
-		testCluster := makeTestCluster(func(c *gitopsv1alpha1.GitopsCluster) {
+		testCluster := makeTestCluster(func(c *gitopsv1alpha1.GitOpsCluster) {
 			c.ObjectMeta.Name = "only-capi-cluster-configured"
 			c.ObjectMeta.Namespace = "default"
 			c.Spec.CAPIClusterRef = &meta.LocalObjectReference{
@@ -596,16 +596,16 @@ func TestGitopsClusterValidation(t *testing.T) {
 
 }
 
-func makeTestReconciler(t *testing.T, opts controllers.Options, objs ...runtime.Object) *controllers.GitopsClusterReconciler {
+func makeTestReconciler(t *testing.T, opts controllers.Options, objs ...runtime.Object) *controllers.GitOpsClusterReconciler {
 	s, tc := makeTestClientAndScheme(t, opts, objs...)
-	return controllers.NewGitopsClusterReconciler(tc, s, opts)
+	return controllers.NewGitOpsClusterReconciler(tc, s, opts)
 }
 
 func makeTestClientAndScheme(t *testing.T, opts controllers.Options, objs ...runtime.Object) (*runtime.Scheme, client.Client) {
 	s := makeClusterScheme(t, opts)
 	return s, fake.NewClientBuilder().
 		WithScheme(s).
-		WithStatusSubresource(&gitopsv1alpha1.GitopsCluster{}).
+		WithStatusSubresource(&gitopsv1alpha1.GitOpsCluster{}).
 		WithRuntimeObjects(objs...).Build()
 }
 
@@ -629,13 +629,13 @@ func assertNoError(t *testing.T, err error) {
 	}
 }
 
-func makeTestCluster(opts ...func(*gitopsv1alpha1.GitopsCluster)) *gitopsv1alpha1.GitopsCluster {
-	c := &gitopsv1alpha1.GitopsCluster{
+func makeTestCluster(opts ...func(*gitopsv1alpha1.GitOpsCluster)) *gitopsv1alpha1.GitOpsCluster {
+	c := &gitopsv1alpha1.GitOpsCluster{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      testName,
 			Namespace: testNamespace,
 		},
-		Spec: gitopsv1alpha1.GitopsClusterSpec{},
+		Spec: gitopsv1alpha1.GitOpsClusterSpec{},
 	}
 	for _, o := range opts {
 		o(c)
@@ -696,16 +696,16 @@ func matchErrorString(t *testing.T, s string, e error) bool {
 	return match
 }
 
-func testGetGitopsCluster(t *testing.T, c client.Client, k client.ObjectKey) *gitopsv1alpha1.GitopsCluster {
+func testGetGitOpsCluster(t *testing.T, c client.Client, k client.ObjectKey) *gitopsv1alpha1.GitOpsCluster {
 	t.Helper()
-	var cluster gitopsv1alpha1.GitopsCluster
+	var cluster gitopsv1alpha1.GitOpsCluster
 	if err := c.Get(context.TODO(), k, &cluster); err != nil {
 		t.Fatal(err)
 	}
 	return &cluster
 }
 
-func assertClusterStatus(t *testing.T, cls *gitopsv1alpha1.GitopsCluster, condType string, status metav1.ConditionStatus, msg string) {
+func assertClusterStatus(t *testing.T, cls *gitopsv1alpha1.GitOpsCluster, condType string, status metav1.ConditionStatus, msg string) {
 	t.Helper()
 	cond := conditions.Get(cls, condType)
 	if status == "" {

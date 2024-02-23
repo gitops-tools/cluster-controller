@@ -2,7 +2,7 @@ domain: weave.works
 layout:
 - go.kubebuilder.io/v3
 projectName: cluster-controller
-repo: github.com/weaveworks/cluster-controller
+repo: github.com/gitops-tools/cluster-controller
 resources:
 - api:
     crdVersion: v1
@@ -10,7 +10,7 @@ resources:
   controller: true
   domain: weave.works
   group: gitops
-  kind: GitopsCluster
-  path: github.com/weaveworks/cluster-controller/api/v1alpha1
+  kind: GitOpsCluster
+  path: github.com/gitops-tools/cluster-controller/api/v1alpha1
   version: v1alpha1
 version: "3"

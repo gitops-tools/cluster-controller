@@ -3,13 +3,14 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.13.0
+    controller-gen.kubebuilder.io/version: v0.11.0
+  creationTimestamp: null
   name: gitopsclusters.gitops.weave.works
 spec:
   group: gitops.weave.works
   names:
-    kind: GitopsCluster
-    listKind: GitopsClusterList
+    kind: GitOpsCluster
+    listKind: GitOpsClusterList
     plural: gitopsclusters
     singular: gitopscluster
   scope: Namespaced
@@ -30,7 +31,7 @@ spec:
     name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: GitopsCluster is the Schema for the gitopsclusters API
+        description: GitOpsCluster is the Schema for the gitopsclusters API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -45,7 +46,7 @@ spec:
           metadata:
             type: object
           spec:
-            description: GitopsClusterSpec defines the desired state of GitopsCluster
+            description: GitOpsClusterSpec defines the desired state of GitOpsCluster
             properties:
               capiClusterRef:
                 description: CAPIClusterRef specifies the CAPI Cluster.
@@ -73,7 +74,7 @@ spec:
             - message: cannot provide both capiClusterRef and secretRef
               rule: '!(has(self.secretRef) && has(self.capiClusterRef))'
           status:
-            description: GitopsClusterStatus defines the observed state of GitopsCluster
+            description: GitOpsClusterStatus defines the observed state of GitOpsCluster
             properties:
               conditions:
                 description: Conditions holds the conditions for the Cluster.
@@ -147,7 +148,7 @@ spec:
             type: object
         type: object
         x-kubernetes-validations:
-        - message: must configure spec
+        - message: must confgure spec
           rule: has(self.spec)
     served: true
     storage: true

@@ -25,9 +25,9 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
 	"github.com/fluxcd/pkg/runtime/logger"
+	gitopsv1alpha1 "github.com/gitops-tools/cluster-controller/api/v1alpha1"
+	"github.com/gitops-tools/cluster-controller/controllers"
 	flag "github.com/spf13/pflag"
-	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
-	"github.com/weaveworks/cluster-controller/controllers"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -102,8 +102,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = controllers.NewGitopsClusterReconciler(mgr.GetClient(), mgr.GetScheme(), options).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "GitopsCluster")
+	if err = controllers.NewGitOpsClusterReconciler(mgr.GetClient(), mgr.GetScheme(), options).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "GitOpsCluster")
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder

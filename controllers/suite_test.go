@@ -23,13 +23,13 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/weaveworks/cluster-controller/controllers"
+	"github.com/gitops-tools/cluster-controller/controllers"
 	"k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 
-	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
+	gitopsv1alpha1 "github.com/gitops-tools/cluster-controller/api/v1alpha1"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -64,7 +64,7 @@ func TestMain(m *testing.M) {
 
 	err = gitopsv1alpha1.AddToScheme(scheme.Scheme)
 	if err != nil {
-		log.Fatalf("add GitopsCluster to schema failed: %s", err)
+		log.Fatalf("add GitOpsCluster to schema failed: %s", err)
 	}
 
 	k8sManager, err = ctrl.NewManager(cfg, ctrl.Options{
@@ -74,7 +74,7 @@ func TestMain(m *testing.M) {
 		log.Fatalf("initializing controller manager failed: %s", err)
 	}
 
-	r := controllers.NewGitopsClusterReconciler(k8sManager.GetClient(), scheme.Scheme, controllers.Options{})
+	r := controllers.NewGitOpsClusterReconciler(k8sManager.GetClient(), scheme.Scheme, controllers.Options{})
 	err = (r).SetupWithManager(k8sManager)
 	if err != nil {
 		log.Fatalf("setup cluster controller failed: %s", err)

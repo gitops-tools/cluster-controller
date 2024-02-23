@@ -31,7 +31,7 @@
 ### Bug Fixes
 
 * use CAPIClusterRef when looking for kubeconfig secret ([4191177](https://github.com/weaveworks/cluster-controller/commit/4191177a12f6139e3eab3566b02e8be916adafea))
-* use the NewGitopsClusterReconciler constructor ([a472d8c](https://github.com/weaveworks/cluster-controller/commit/a472d8c3d047691180d7fb6fc4710e3c79ec48e9))
+* use the NewGitOpsClusterReconciler constructor ([a472d8c](https://github.com/weaveworks/cluster-controller/commit/a472d8c3d047691180d7fb6fc4710e3c79ec48e9))
 * wait for control plane for readiness ([7d9497f](https://github.com/weaveworks/cluster-controller/commit/7d9497f4eea5714bd3b8b207559d179a4e4598a2))
 
 ## 1.0.0 (2022-04-21)

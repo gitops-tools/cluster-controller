@@ -1,6 +1,6 @@
-module github.com/weaveworks/cluster-controller
+module github.com/gitops-tools/cluster-controller
 
-go 1.20
+go 1.22
 
 require (
 	github.com/fluxcd/pkg/apis/meta v1.1.2
